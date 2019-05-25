@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Аспекты экспертного оценивания</title>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        $(document).ready(function () {
+            var tbody = document.getElementById('tbody');
+            function getItems() {
+
+                $.ajax({
+                    url: '/api/Criteria',
+                    accepts: 'application/json',
+                    method: 'GET',
+                    success: function (response) {
+
+                        var items = response;
+                        var html = '';
+
+                        for (var i = 0; i < items.length; i++) {
+                            html += `<tr>
+                                        <td class="idAspect">${items[i].idAspect}</td>
+                                        <td class="AspectName">${items[i].AspectName}</td>
+                                        <td class="CriterionName">${items[i].CriterionName}</td>
+                                    </tr>`
+                        };
+                        tbody.innerHTML = html;
+ 
+                    }
+                });
+            }
+            getItems();
+
+            function validateID(id) {
+                var idIsValid = false;
+                for (var i = 0; i < $('.idAspect').length; i++) {
+                    if (id == $('.idAspect').eq(i).text()) {
+
+                        idIsValid = true;
+                    }
+                }
+                console.log(idIsValid)
+                return idIsValid;
+            }
+
+            // запрос для удаления элемента
+            $('#delete').on('click', function () {
+                var idAspect = $('#idToDelete').val();
+                if (validateID(idAspect)) {
+                    $.ajax({
+                        url: '/api/' + idAspect,
+                        accept: 'application/json',
+                        type: 'DELETE',
+                        success: function () {
+                            console.log('success');
+                        }
+                    })
+                } else { alert('invalid ID!') }
+            })
+
+            // запрос для обновления элемента
+            $('#update').on('click', function () {
+                var idAspect = $('#idAspect').val();
+                console.log(idAspect);
+                if (validateID(idAspect)) {
+
+                    if ($('#AspectName').val() == '' || $('#CriterionName').val() == '') {
+                        alert('empty field!');
+                        return;
+                    }
+                    var requestData = {
+                        idAspect: $('#idAspect').val(),
+                        AspectName: $('#AspectName').val(),
+                        CriterionName: $('#CriterionName').val()
+                    }
+                    $.ajax({
+                        url: '/api/' + idAspect,
+                        type: 'PUT',
+                        data: JSON.stringify(requestData),
+                        contentType: 'application/json',
+                        success: function() {
+                            console.log('success');
+                        }
+                    })
+                } else { alert('invalid ID!') }
+            });
+
+            // запрос дл создания элемента
+            $('#create').on('click', function () {
+
+                if ($('#AspectName').val() == '' || $('#CriterionName').val() == '') {
+                    alert('empty field!');
+                    return;
+                }
+
+                    var requestData = {
+                        idAspect: $('#idAspect').val(),
+                        AspectName: $('#AspectName').val(),
+                        CriterionName: $('#CriterionName').val()
+                    }
+                    console.log(JSON.stringify(requestData))
+
+                    console.log(requestData)
+                    $.ajax({
+                        url: '/api' ,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(requestData),
+                        success: function () {
+                            console.log('success');
+                        }
+
+                    })
+            });
+
+        })
+    </script>
+</head>
+<body>
+    <div class="database-table">
+        <table class="database-table__table table">
+            <thead class="table__head">
+                <tr class="table__row">
+                    <th class="table__column">№ аспекта</th>
+                    <th class="table__column">Наименование аспекта</th>
+                    <th class="table__column">Наименование критерия</th>
+                </tr>
+            </thead>
+            <tbody id="tbody" class="table__body"></tbody>
+        </table>
+    </div>
+    <div class="database-manipulations">
+        <div class="database-manipulations__item">
+                <h2 class="database-manipulations__title">Добавление или изменение кортежа таблицы:</h2>
+                <p class="database-manipulations__field">
+                    <label>№ аспекта </label><input id="idAspect"/>
+                </p>
+                <p class="database-manipulations__field">
+                    <label>Наименование аспекта </label><input id="AspectName"/>
+                </p>
+                <p class="database-manipulations__field">
+                    <label>Наименование критерия </label><input id="CriterionName"/>
+                </p>
+                <button id="update" class="btn">Изменение</button>
+                <button id="create" class="btn btn--brown">Создание</button>
+        </div>
+        <div class="database-manipulations__item">
+            <h2>Удаление кортежа таблицы:</h2>
+            <p class="database-manipulations__field">
+                <label>№ аспекта </label><input id="idToDelete">
+            </p>
+            <button id="delete" class="btn btn--purple">Удаление</button>
+        </div>
+    </div>
+</body>
+</html>
